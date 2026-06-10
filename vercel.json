@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
+  "rewrites": [
+    { "source": "/subscribe", "destination": "/api/subscribe.js" },
+    { "source": "/unsubscribe", "destination": "/api/unsubscribe.js" },
+    { "source": "/send-all", "destination": "/api/send-all.js" },
+    { "source": "/send-one", "destination": "/api/send-one.js" },
+    { "source": "/subscribers", "destination": "/api/subscribers.js" }
   ]
 }
