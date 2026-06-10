@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications — Abonnement</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #141928;
+      --surface2: #1c2438;
+      --border: rgba(255,255,255,0.07);
+      --accent: #4f8ef7;
+      --accent2: #7c5cfc;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #e8ecf4;
+      --muted: #6b7a99;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* Ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(79,142,247,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 52px 48px;
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    }
+
+    .bell-wrap {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      box-shadow: 0 0 40px rgba(79,142,247,0.35);
+    }
+
+    .bell-wrap svg { width: 38px; height: 38px; }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 28px;
+      transition: all 0.3s;
+    }
+
+    .status-badge.inactive {
+      background: rgba(107,122,153,0.15);
+      border: 1px solid rgba(107,122,153,0.2);
+      color: var(--muted);
+    }
+
+    .status-badge.active {
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-badge.active .status-dot {
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    /* Main button */
+    .btn-main {
+      width: 100%;
+      padding: 16px;
+      border-radius: var(--radius);
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-subscribe {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(79,142,247,0.3);
+    }
+
+    .btn-subscribe:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(79,142,247,0.45);
+    }
+
+    .btn-unsubscribe {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: var(--red);
+    }
+
+    .btn-unsubscribe:hover:not(:disabled) {
+      background: rgba(239,68,68,0.18);
+      transform: translateY(-2px);
+    }
+
+    .btn-main:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Provider link */
+    .provider-link {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .provider-link a {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .provider-link a:hover { color: var(--accent); }
+
+    /* Log box */
+    .log {
+      margin-top: 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 0.82rem;
+      color: var(--muted);
+      max-height: 140px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      display: none;
+    }
+
+    .log.show { display: block; }
+    .log .entry { padding: 2px 0; }
+    .log .entry.ok { color: var(--green); }
+    .log .entry.err { color: var(--red); }
+    .log .entry.info { color: var(--accent); }
+
+    /* Loader spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="bell-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  </div>
+
+  <h1>Notifications Push</h1>
+  <p class="subtitle">Activez les notifications pour recevoir des alertes instantanées du fournisseur, même lorsque la page est fermée.</p>
+
+  <div class="status-badge inactive" id="statusBadge">
+    <span class="status-dot"></span>
+    <span id="statusText">Non abonné</span>
+  </div>
+
+  <button class="btn-main btn-subscribe" id="btnSubscribe" onclick="subscribe()">
+    <div class="spinner" id="spinner"></div>
+    <svg id="btnIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      <line x1="12" y1="2" x2="12" y2="2" stroke-width="3"/>
+    </svg>
+    <span id="btnLabel">Activer les notifications</span>
+  </button>
+
+  <div class="log" id="logBox"></div>
+
+  <div class="provider-link">
+    <a href="provider.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+      </svg>
+      Accès Fournisseur
+    </a>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+<script>
+  const VAPID_KEY = 'BFGUPMoD5d_87zESUIX5mMfr2e0DSTpspjhtsaSBr05LTsqoneKG2n1RQxrU8VkbalTORzL62UgnvdWVV8UDrNQ';
+  const SERVER = '';  // same origin
+
+  firebase.initializeApp({
+    apiKey: "AIzaSyBZKSBcBeE_ddlqrmNAru_YZRS4tAwRRvk",
+    authDomain: "database-5583e.firebaseapp.com",
+    databaseURL: "https://database-5583e-default-rtdb.firebaseio.com",
+    projectId: "database-5583e",
+    storageBucket: "database-5583e.firebasestorage.app",
+    messagingSenderId: "299502845257",
+    appId: "1:299502845257:web:c77c7f9ebc743abb63ee98",
+    measurementId: "G-YK85043ZPR"
+  });
+
+  const messaging = firebase.messaging();
+  let currentToken = localStorage.getItem('fcm_token');
+
+  // ── UI helpers ──────────────────────────────────────────────
+  function log(msg, type = 'info') {
+    const box = document.getElementById('logBox');
+    box.classList.add('show');
+    const el = document.createElement('div');
+    el.className = `entry ${type}`;
+    el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setLoading(on) {
+    document.getElementById('spinner').style.display = on ? 'block' : 'none';
+    document.getElementById('btnIcon').style.display = on ? 'none' : 'block';
+    document.getElementById('btnSubscribe').disabled = on;
+  }
+
+  function setSubscribed(subscribed) {
+    const badge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const btn = document.getElementById('btnSubscribe');
+    const btnLabel = document.getElementById('btnLabel');
+    const btnIcon = document.getElementById('btnIcon');
+
+    if (subscribed) {
+      badge.className = 'status-badge active';
+      statusText.textContent = 'Abonné · Actif';
+      btn.className = 'btn-main btn-unsubscribe';
+      btn.onclick = unsubscribe;
+      btnLabel.textContent = 'Désactiver les notifications';
+      btnIcon.innerHTML = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="4" y1="4" x2="20" y2="20"/>`;
+    } else {
+      badge.className = 'status-badge inactive';
+      statusText.textContent = 'Non abonné';
+      btn.className = 'btn-main btn-subscribe';
+      btn.onclick = subscribe;
+      btnLabel.textContent = 'Activer les notifications';
+      btnIcon.innerHTML = `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`;
+    }
+  }
+
+  // ── Subscribe ───────────────────────────────────────────────
+  async function subscribe() {
+    setLoading(true);
+    try {
+      // Register service worker
+      const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      log('Service worker enregistré', 'info');
+
+      // Request permission
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        log('Permission refusée par l\'utilisateur', 'err');
+        return;
+      }
+      log('Permission accordée ✓', 'ok');
+
+      // Get FCM token
+      const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+      if (!token) throw new Error('Impossible d\'obtenir le token FCM');
+
+      log('Token FCM obtenu', 'ok');
+      currentToken = token;
+      localStorage.setItem('fcm_token', token);
+
+      // Register on server
+      const res = await fetch(`${SERVER}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, label: `Navigateur ${navigator.platform}` }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error('Erreur serveur');
+
+      log(`Abonné avec succès — ${data.count} abonné(s) total`, 'ok');
+      setSubscribed(true);
+
+    } catch (err) {
+      log(`Erreur : ${err.message}`, 'err');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Unsubscribe ─────────────────────────────────────────────
+  async function unsubscribe() {
+    if (!currentToken) return;
+    setLoading(true);
+    try {
+      await messaging.deleteToken();
+      await fetch(`${SERVER}/unsubscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: currentToken }),
+      });
+      localStorage.removeItem('fcm_token');
+      currentToken = null;
+      log('Désabonnement effectué', 'ok');
+      setSubscribed(false);
+    } catch (err) {
+      log(`Erreur désabonnement : ${err.message}`, 'err');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Foreground messages ─────────────────────────────────────
+  messaging.onMessage((payload) => {
+    const { title, body } = payload.notification || {};
+    log(`📨 Message reçu : "${title}" — ${body}`, 'ok');
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/icon.png' });
+    }
+  });
+
+  // ── Init ────────────────────────────────────────────────────
+  if (currentToken && Notification.permission === 'granted') {
+    setSubscribed(true);
+  }
+</script>
+
+</body>
+</html>
