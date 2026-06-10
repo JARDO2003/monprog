@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord — Fournisseur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #141928;
+      --surface2: #1c2438;
+      --surface3: #232d42;
+      --border: rgba(255,255,255,0.07);
+      --accent: #4f8ef7;
+      --accent2: #7c5cfc;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --text: #e8ecf4;
+      --muted: #6b7a99;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Ambient */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -150px; right: -150px;
+      width: 500px; height: 500px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.1) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { width: 18px; height: 18px; }
+
+    .logo-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .logo-sub { font-size: 0.72rem; color: var(--muted); }
+
+    .nav-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 16px 12px 8px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--muted);
+    }
+
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(79,142,247,0.12); color: var(--accent); }
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-footer a {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--muted); font-size: 0.82rem; text-decoration: none;
+      padding: 8px 12px; border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .sidebar-footer a:hover { color: var(--accent); background: var(--surface2); }
+
+    /* ── MAIN ── */
+    .main {
+      padding: 40px 48px;
+      overflow-y: auto;
+    }
+
+    .page-header {
+      margin-bottom: 36px;
+    }
+
+    .page-header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .page-header p { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── STATS ROW ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+    }
+
+    .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .stat-label svg { width: 13px; height: 13px; }
+    .stat-value { font-size: 2rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.accent { color: var(--accent); }
+
+    /* ── COMPOSE CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .card-title svg { width: 16px; height: 16px; color: var(--accent); }
+
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+
+    select option { background: var(--surface2); }
+
+    /* Target selector */
+    .target-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .target-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    .target-tab svg { width: 14px; height: 14px; }
+    .target-tab:hover { border-color: var(--accent); color: var(--text); }
+    .target-tab.active { background: rgba(79,142,247,0.12); border-color: var(--accent); color: var(--accent); }
+
+    /* Buttons */
+    .btn {
+      padding: 13px 24px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(79,142,247,0.25);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,142,247,0.35); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-refresh {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 14px;
+      font-size: 0.8rem;
+    }
+
+    .btn-refresh:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── SUBSCRIBERS LIST ── */
+    .subscribers-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .sub-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .sub-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+    }
+
+    .sub-item:hover { border-color: rgba(79,142,247,0.3); }
+    .sub-item.selected { border-color: var(--accent); background: rgba(79,142,247,0.06); }
+
+    .sub-info { display: flex; align-items: center; gap: 12px; }
+
+    .sub-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .sub-name { font-size: 0.88rem; font-weight: 500; }
+    .sub-token { font-size: 0.72rem; color: var(--muted); font-family: monospace; }
+    .sub-date { font-size: 0.72rem; color: var(--muted); }
+
+    .sub-select {
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .sub-select.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 100;
+    }
+
+    .toast {
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      display: flex; align-items: center; gap: 10px;
+      animation: slide-in 0.3s ease;
+      max-width: 340px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .toast.ok { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+    .toast.err { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+    .toast.info { background: rgba(79,142,247,0.15); border: 1px solid rgba(79,142,247,0.3); color: var(--accent); }
+
+    @keyframes slide-in {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* spinner */
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 24px 20px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">NotifyHub</div>
+        <div class="logo-sub">Tableau de bord fournisseur</div>
+      </div>
+    </div>
+
+    <div class="nav-label">Navigation</div>
+
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Vue d'ensemble
+    </div>
+
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Notifications
+    </div>
+
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Abonnés
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Page client
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="page-header">
+      <h1>Envoyer des notifications</h1>
+      <p>Gérez vos abonnés et diffusez des messages instantanément.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Abonnés actifs
+        </div>
+        <div class="stat-value green" id="statCount">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Envois réussis
+        </div>
+        <div class="stat-value accent" id="statSent">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Dernière activité
+        </div>
+        <div class="stat-value" id="statTime" style="font-size:1rem;margin-top:4px">—</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+
+      <!-- COMPOSE -->
+      <div>
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Composer un message
+          </div>
+
+          <!-- Target -->
+          <label>Destinataires</label>
+          <div class="target-tabs">
+            <button class="target-tab active" id="tabAll" onclick="setTarget('all')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Tous
+            </button>
+            <button class="target-tab" id="tabOne" onclick="setTarget('one')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Sélection
+            </button>
+          </div>
+
+          <div class="form-group" id="singleSelect" style="display:none;">
+            <label>Abonné ciblé</label>
+            <select id="selectSubscriber">
+              <option value="">— Choisir un abonné —</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Titre *</label>
+            <input type="text" id="notifTitle" placeholder="Ex: Alerte importante" />
+          </div>
+
+          <div class="form-group">
+            <label>Message *</label>
+            <textarea id="notifBody" placeholder="Rédigez votre notification..."></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="btnSend" onclick="sendNotification()">
+            <div class="spinner" id="sendSpinner"></div>
+            <svg id="sendIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Envoyer la notification
+          </button>
+        </div>
+      </div>
+
+      <!-- SUBSCRIBERS -->
+      <div>
+        <div class="card">
+          <div class="subscribers-header">
+            <div class="card-title" style="margin:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Abonnés
+            </div>
+            <button class="btn btn-refresh" onclick="loadSubscribers()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Actualiser
+            </button>
+          </div>
+
+          <div class="sub-list" id="subList" style="margin-top:16px">
+            <div class="empty-state">Chargement…</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  const SERVER = '';
+  let target = 'all';
+  let subscribers = [];
+  let totalSent = 0;
+
+  // ── Target mode ──────────────────────────────────────────────
+  function setTarget(mode) {
+    target = mode;
+    document.getElementById('tabAll').classList.toggle('active', mode === 'all');
+    document.getElementById('tabOne').classList.toggle('active', mode === 'one');
+    document.getElementById('singleSelect').style.display = mode === 'one' ? 'block' : 'none';
+  }
+
+  // ── Load subscribers ─────────────────────────────────────────
+  async function loadSubscribers() {
+    try {
+      const res = await fetch(`${SERVER}/subscribers`);
+      subscribers = await res.json();
+
+      document.getElementById('statCount').textContent = subscribers.length;
+
+      const list = document.getElementById('subList');
+      const sel = document.getElementById('selectSubscriber');
+      sel.innerHTML = '<option value="">— Choisir un abonné —</option>';
+
+      if (subscribers.length === 0) {
+        list.innerHTML = '<div class="empty-state">Aucun abonné pour le moment.<br>Ouvrez la page client pour vous abonner.</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      subscribers.forEach((sub, i) => {
+        const initials = sub.label.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const date = new Date(sub.subscribedAt).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+
+        const item = document.createElement('div');
+        item.className = 'sub-item';
+        item.innerHTML = `
+          <div class="sub-info">
+            <div class="sub-avatar">${initials}</div>
+            <div>
+              <div class="sub-name">${sub.label}</div>
+              <div class="sub-token">${sub.token}</div>
+              <div class="sub-date">Abonné le ${date}</div>
+            </div>
+          </div>
+        `;
+        list.appendChild(item);
+
+        const opt = document.createElement('option');
+        opt.value = sub.fullToken;
+        opt.textContent = `${sub.label} — ${sub.token}`;
+        sel.appendChild(opt);
+      });
+    } catch (err) {
+      toast('Erreur chargement abonnés : ' + err.message, 'err');
+    }
+  }
+
+  // ── Send notification ────────────────────────────────────────
+  async function sendNotification() {
+    const title = document.getElementById('notifTitle').value.trim();
+    const body = document.getElementById('notifBody').value.trim();
+
+    if (!title || !body) { toast('Le titre et le message sont requis.', 'err'); return; }
+
+    setSendLoading(true);
+    try {
+      let url, payload;
+
+      if (target === 'all') {
+        url = `${SERVER}/send-all`;
+        payload = { title, body };
+      } else {
+        const token = document.getElementById('selectSubscriber').value;
+        if (!token) { toast('Sélectionnez un abonné.', 'err'); setSendLoading(false); return; }
+        url = `${SERVER}/send-one`;
+        payload = { token, title, body };
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Erreur');
+
+      const sent = data.sent ?? 1;
+      totalSent += sent;
+      document.getElementById('statSent').textContent = totalSent;
+      document.getElementById('statTime').textContent = new Date().toLocaleTimeString('fr-FR');
+
+      toast(
+        target === 'all'
+          ? `✅ Notification envoyée à ${data.sent} abonné(s)${data.failed ? ` (${data.failed} échec)` : ''}`
+          : '✅ Notification envoyée',
+        'ok'
+      );
+
+      document.getElementById('notifTitle').value = '';
+      document.getElementById('notifBody').value = '';
+
+    } catch (err) {
+      toast('Erreur : ' + err.message, 'err');
+    } finally {
+      setSendLoading(false);
+    }
+  }
+
+  // ── UI helpers ───────────────────────────────────────────────
+  function setSendLoading(on) {
+    document.getElementById('sendSpinner').style.display = on ? 'block' : 'none';
+    document.getElementById('sendIcon').style.display = on ? 'none' : 'block';
+    document.getElementById('btnSend').disabled = on;
+  }
+
+  function toast(msg, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadSubscribers();
+  setInterval(loadSubscribers, 15000); // auto-refresh every 15s
+</script>
+
+</body>
+</html>
